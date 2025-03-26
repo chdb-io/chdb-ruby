@@ -5,7 +5,7 @@
 *.o
 
 Gemfile.lock
-.rspec_statu
+.rspec_status
 .ruby-version
 .vscode
 
