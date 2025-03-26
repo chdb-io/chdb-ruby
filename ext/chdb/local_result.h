@@ -1,9 +1,10 @@
 #ifndef CHDB_LOCAL_RESULT_H
-#define CHDB_LOCAL_RESULT_H 
+#define CHDB_LOCAL_RESULT_H
 
 #include <ruby.h>
 
-typedef struct {
+typedef struct
+{
     struct local_result_v2 *c_result;
 } LocalResult;
 

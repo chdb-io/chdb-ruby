@@ -1,16 +1,18 @@
 #include "connection.h"
 
-VALUE connection_alloc(VALUE klass) {
+VALUE connection_alloc(VALUE klass)
+{
     Connection *conn = ALLOC(Connection);
     DEBUG_PRINT("Allocating Connection: %p", (void*)conn);
     conn->c_conn = NULL;
     return rb_data_typed_object_wrap(klass, conn, &ConnectionType);
 }
 
-VALUE connection_initialize(VALUE self, VALUE argc, VALUE argv) {
+VALUE connection_initialize(VALUE self, VALUE argc, VALUE argv)
+{
     Check_Type(argc, T_FIXNUM);
     Check_Type(argv, T_ARRAY);
-    
+
     int c_argc = NUM2INT(argc);
     char **c_argv = ALLOC_N(char *, c_argc);
 
@@ -35,7 +37,8 @@ VALUE connection_initialize(VALUE self, VALUE argc, VALUE argv) {
     return self;
 }
 
-VALUE connection_query(VALUE self, VALUE query, VALUE format) {
+VALUE connection_query(VALUE self, VALUE query, VALUE format)
+{
     Connection *conn;
     TypedData_Get_Struct(self, Connection, &ConnectionType, conn);
 
@@ -43,14 +46,16 @@ VALUE connection_query(VALUE self, VALUE query, VALUE format) {
     Check_Type(format, T_STRING);
 
     struct local_result_v2 *c_result = query_conn(
-        *conn->c_conn, 
-        StringValueCStr(query),
-        StringValueCStr(format)
-    );
+                                           *conn->c_conn,
+                                           StringValueCStr(query),
+                                           StringValueCStr(format)
+                                       );
 
     if (!c_result)
+    {
         rb_raise(cChDBError, "Query failed with nil result");
-    
+    }
+
     if (c_result->error_message)
     {
         VALUE error_message = rb_str_new_cstr(c_result->error_message);
@@ -65,27 +70,32 @@ VALUE connection_query(VALUE self, VALUE query, VALUE format) {
     return result_obj;
 }
 
-VALUE connection_close(VALUE self) {
+VALUE connection_close(VALUE self)
+{
     Connection *conn;
     TypedData_Get_Struct(self, Connection, &ConnectionType, conn);
-    
-    if (conn->c_conn) {
+
+    if (conn->c_conn)
+    {
         close_conn(conn->c_conn);
         conn->c_conn = NULL;
     }
     return Qnil;
 }
 
-static void connection_free(void *ptr) {
+static void connection_free(void *ptr)
+{
     Connection *conn = (Connection *)ptr;
     DEBUG_PRINT("Closing connection: %p", (void*)conn->c_conn);
-    if (conn->c_conn) {
+    if (conn->c_conn)
+    {
         close_conn(conn->c_conn);
     }
     free(conn);
 }
 
-const rb_data_type_t ConnectionType = {
+const rb_data_type_t ConnectionType =
+{
     "Connection",
     {NULL, connection_free, NULL},
 };

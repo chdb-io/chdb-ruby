@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-desc "Perform a sanity check on the gemspec file list"
-task :check_manifest do 
+desc 'Perform a sanity check on the gemspec file list'
+task :check_manifest do # rubocop:disable Metrics/BlockLength
   ignore_directories = %w{
     .DS_Store
     .bundle
@@ -42,18 +42,18 @@ task :check_manifest do
     *.so
   ]
 
-  intended_directories = Dir.children(".")
-    .select { |filename| File.directory?(filename) }
-    .reject { |filename| ignore_directories.any? { |ig| File.fnmatch?(ig, filename) } }
+  intended_directories = Dir.children('.')
+                            .select { |filename| File.directory?(filename) }
+                            .reject { |filename| ignore_directories.any? { |ig| File.fnmatch?(ig, filename) } }
 
-  intended_files = Dir.children(".")
-    .select { |filename| File.file?(filename) }
-    .reject { |filename| ignore_files.any? { |ig| File.fnmatch?(ig, filename, File::FNM_EXTGLOB) } }
+  intended_files = Dir.children('.')
+                      .select { |filename| File.file?(filename) }
+                      .reject { |filename| ignore_files.any? { |ig| File.fnmatch?(ig, filename, File::FNM_EXTGLOB) } }
 
-  intended_files += Dir.glob(intended_directories.map { |d| File.join(d, "/**/*") })
-    .select { |filename| File.file?(filename) }
-    .reject { |filename| ignore_files.any? { |ig| File.fnmatch?(ig, filename, File::FNM_EXTGLOB) } }
-    .sort
+  intended_files += Dir.glob(intended_directories.map { |d| File.join(d, '/**/*') })
+                       .select { |filename| File.file?(filename) }
+                       .reject { |filename| ignore_files.any? { |ig| File.fnmatch?(ig, filename, File::FNM_EXTGLOB) } }
+                       .sort
 
   spec_files = CHDB_SPEC.files.sort
 
@@ -61,11 +61,11 @@ task :check_manifest do
   extra_files = spec_files - intended_files
 
   unless missing_files.empty?
-    puts "missing:"
+    puts 'missing:'
     missing_files.sort.each { |f| puts "- #{f}" }
   end
   unless extra_files.empty?
-    puts "unexpected:"
+    puts 'unexpected:'
     extra_files.sort.each { |f| puts "+ #{f}" }
   end
 end

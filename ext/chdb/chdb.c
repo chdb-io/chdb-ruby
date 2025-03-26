@@ -8,7 +8,8 @@
 VALUE cChDBError;
 VALUE cLocalResult;
 
-void init_chdb_constants() {
+void init_chdb_constants()
+{
     VALUE mChDB = rb_define_module("ChDB");
     VALUE mChDBConstants = rb_define_module_under(mChDB, "Constants");
     VALUE mmChDBOpen = rb_define_module_under(mChDBConstants, "Open");
@@ -18,15 +19,21 @@ void init_chdb_constants() {
     rb_define_const(mmChDBOpen, "CREATE", INT2FIX(CHDB_OPEN_CREATE));
 }
 
-void init_exception() {
+void init_exception()
+{
     VALUE mChDB = rb_define_module("ChDB");
     if (rb_const_defined(mChDB, rb_intern("Exception")))
+    {
         cChDBError = rb_const_get(mChDB, rb_intern("Exception"));
+    }
     else
+    {
         cChDBError = rb_define_class_under(mChDB, "Exception", rb_eStandardError);
+    }
 }
 
-void init_local_result() {
+void init_local_result()
+{
     VALUE mChDB = rb_define_module("ChDB");
     cLocalResult = rb_define_class_under(mChDB, "LocalResult", rb_cObject);
     rb_define_alloc_func(cLocalResult, local_result_alloc);
@@ -36,7 +43,8 @@ void init_local_result() {
     rb_define_method(cLocalResult, "bytes_read", local_result_bytes_read, 0);
 }
 
-void init_connection() {
+void init_connection()
+{
     VALUE mChDB = rb_define_module("ChDB");
     VALUE cConnection = rb_define_class_under(mChDB, "Connection", rb_cObject);
     rb_define_alloc_func(cConnection, connection_alloc);
@@ -49,11 +57,11 @@ void init_connection() {
 void Init_chdb(void)
 {
     DEBUG_PRINT("Initializing chdb extension");
-    
+
     init_chdb_constants();
-    init_exception(); 
+    init_exception();
     init_local_result();
-    init_connection(); 
+    init_connection();
 
     DEBUG_PRINT("chdb extension initialized successfully");
 }

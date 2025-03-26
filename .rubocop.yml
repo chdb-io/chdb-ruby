@@ -5,9 +5,11 @@ AllCops:
 
   NewCops: enable
 
-  TargetRubyVersion: 3.4
+  TargetRubyVersion: 3.1
   
   AutoCorrect: true
+  
+  SuggestExtensions: false
 
 Style:
   StringLiterals:
@@ -27,11 +29,10 @@ Layout:
     Max: 120
 
   FirstParameterIndentation:
-   恩abled: true
+    Enabled: true
     EnforcedStyle: indented
 
-Indentation:
-  Width:
+  Indentation:
     Width: 2
 
 Metrics:

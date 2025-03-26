@@ -3,7 +3,8 @@
 
 #include <ruby.h>
 
-typedef struct {
+typedef struct
+{
     struct chdb_conn **c_conn;
 } Connection;
 

@@ -1,12 +1,12 @@
 # frozen_string_literal: true
 
-require "csv"
-require "chdb/chdb"
-require "chdb/local_result"
-require "chdb/result_set"
-require "chdb/result_handler"
-require "chdb/parameter_binding"
-require "chdb/sql_processor"
+require 'csv'
+require 'chdb/chdb'
+require 'chdb/local_result'
+require 'chdb/result_set'
+require 'chdb/result_handler'
+require 'chdb/parameter_binding'
+require 'chdb/sql_processor'
 
 module ChDB
   # Represents a prepared SQL statement in the ChDB database.
@@ -41,8 +41,8 @@ module ChDB
       @processed_sql = process_sql
 
       results = @connection.build_result_set self
-      @result = @connection.conn.query(@processed_sql, "CSVWithNames")
-      @result.output_format = "CSVWithNames"
+      @result = @connection.conn.query(@processed_sql, 'CSVWithNames')
+      @result.output_format = 'CSVWithNames'
 
       yield results if block_given?
       results
@@ -102,15 +102,15 @@ module ChDB
     private
 
     def validate_inputs(db, sql_str)
-      raise ArgumentError, "SQL statement cannot be nil" if sql_str.nil?
-      raise ArgumentError, "prepare called on a closed database" if db.nil? || db.closed?
+      raise ArgumentError, 'SQL statement cannot be nil' if sql_str.nil?
+      raise ArgumentError, 'prepare called on a closed database' if db.nil? || db.closed?
     end
 
     def encode_sql(sql_str)
-      if sql_str.encoding != Encoding::UTF_8
-        sql_str.encode(Encoding::UTF_8)
-      else
+      if sql_str.encoding == Encoding::UTF_8
         sql_str.dup
+      else
+        sql_str.encode(Encoding::UTF_8)
       end
     end
 
