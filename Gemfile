@@ -8,7 +8,6 @@ group :test do
   gem 'rake-compiler', '1.2.9'
   gem 'rake-compiler-dock', '1.9.1'
   gem 'rspec', '3.12.0'
-  gem 'ruby_memcheck', '3.0.1' if Gem::Platform.local.os == 'linux'
 end
 
 group :development do

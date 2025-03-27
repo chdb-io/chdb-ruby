@@ -10,12 +10,12 @@ Gemfile.lock
 .vscode
 
 doc/
+deps/
 gems/
 issues/
 pkg/
 ports/
 tmp/
-tmp_chdb/
 vendor/
 test/
 testdb/
