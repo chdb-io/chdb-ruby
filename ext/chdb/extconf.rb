@@ -3,13 +3,12 @@
 require 'fileutils'
 require 'mkmf'
 require 'yaml'
+require 'open-uri'
 
 module ChDB
   module ExtConf
     class << self
       def configure
-        configure_cross_compiler
-
         download_and_extract
 
         configure_extension
@@ -33,7 +32,12 @@ module ChDB
         lib_path = File.expand_path('ext/chdb/lib', package_root_dir)
         append_ldflags("-L#{lib_path}")
 
-        append_ldflags("-Wl,-rpath,'$$ORIGIN/../lib'")
+        target_platform = determine_target_platform
+        if target_platform.include?('darwin')
+          append_ldflags('-Wl,-rpath,@loader_path/../lib')
+        else
+          append_ldflags("-Wl,-rpath,'$$ORIGIN/../lib'")
+        end
 
         abort_could_not_find('chdb.h') unless find_header('chdb.h', include_path)
 
@@ -53,9 +57,10 @@ module ChDB
       def download_and_extract
         target_platform = determine_target_platform
         version = fetch_chdb_version
-        download_dir = setup_download_directory(target_platform, version)
+        download_dir = determine_download_directory(target_platform, version)
 
         unless Dir.exist?(download_dir)
+          FileUtils.mkdir_p(download_dir)
           file_name = get_file_name(target_platform)
           url = build_download_url(version, file_name)
           download_tarball(url, download_dir, file_name)
@@ -68,7 +73,16 @@ module ChDB
       private
 
       def determine_target_platform
-        ENV['TARGET'] || host_platform
+        return ENV['TARGET'].strip if ENV['TARGET'] && !ENV['TARGET'].strip.empty?
+
+        case RUBY_PLATFORM
+        when /aarch64-linux/ then 'aarch64-linux-gnu'
+        when /x86_64-linux/  then 'x86_64-linux-gnu'
+        when /arm64-darwin/  then 'arm64-darwin'
+        when /x86_64-darwin/ then 'x86_64-darwin'
+        else
+          'unknown-platform'
+        end
       end
 
       def fetch_chdb_version
@@ -76,10 +90,8 @@ module ChDB
         dependencies[:chdb][:version]
       end
 
-      def setup_download_directory(target_platform, version)
-        download_dir = File.join(package_root_dir, 'deps', version, target_platform)
-        FileUtils.mkdir_p(download_dir)
-        download_dir
+      def determine_download_directory(target_platform, version)
+        File.join(package_root_dir, 'deps', version, target_platform)
       end
 
       def get_file_name(target_platform)
@@ -99,6 +111,7 @@ module ChDB
       def download_tarball(url, download_dir, file_name)
         tarball = File.join(download_dir, file_name)
         puts "Downloading chdb library for #{determine_target_platform}..."
+
         URI.open(url) do |remote| # rubocop:disable Security/Open
           IO.copy_stream(remote, tarball)
         end
@@ -111,16 +124,24 @@ module ChDB
 
       def copy_files(download_dir, _version)
         ext_chdb_path = File.join(package_root_dir, 'ext/chdb')
-        [%w[include *.h], %w[lib *.so], %w[lib *.dylib]].each do |(src_dir, pattern)|
+        [%w[*.h], %w[*.so], %w[*.dylib]].each do |(glob_pattern)|
+          src_dir, pattern = File.split(glob_pattern)
+
+          dest_subdir = case pattern
+                        when '*.h' then 'include'
+                        else 'lib'
+                        end
           src = File.join(download_dir, src_dir, pattern)
-          dest = File.join(ext_chdb_path, src_dir)
+          dest = File.join(ext_chdb_path, dest_subdir)
           FileUtils.mkdir_p(dest)
           FileUtils.cp_r(Dir.glob(src), dest, remove_destination: true)
-        end
-      end
 
-      def host_platform
-        RbConfig::CONFIG['host_os'].downcase
+          target_platform = determine_target_platform
+          if target_platform.include?('darwin') && (pattern == '*.so')
+            system("install_name_tool -id '@rpath/libchdb.so' #{File.join(dest, 'libchdb.so')}")
+            system("codesign -f -s - #{File.join(dest, 'libchdb.so')}")
+          end
+        end
       end
 
       def package_root_dir

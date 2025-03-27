@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require 'chdb/chdb'
+require 'chdb/chdb_native'
 require 'chdb/data_path'
 require 'chdb/statement'
 

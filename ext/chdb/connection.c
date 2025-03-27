@@ -1,5 +1,20 @@
 #include "connection.h"
 
+#include "constants.h"
+#include "exception.h"
+#include "include/chdb.h"
+#include "local_result.h"
+
+void init_connection()
+{
+    VALUE mChDB = rb_define_module("ChDB");
+    VALUE cConnection = rb_define_class_under(mChDB, "Connection", rb_cObject);
+    rb_define_alloc_func(cConnection, connection_alloc);
+    rb_define_method(cConnection, "initialize", connection_initialize, 2);
+    rb_define_method(cConnection, "query", connection_query, 2);
+    rb_define_method(cConnection, "close", connection_close, 0);
+}
+
 VALUE connection_alloc(VALUE klass)
 {
     Connection *conn = ALLOC(Connection);

@@ -8,7 +8,10 @@ typedef struct
     struct local_result_v2 *c_result;
 } LocalResult;
 
+extern VALUE cLocalResult;
 extern const rb_data_type_t LocalResultType;
+
+void init_local_result();
 
 VALUE local_result_alloc(VALUE klass);
 

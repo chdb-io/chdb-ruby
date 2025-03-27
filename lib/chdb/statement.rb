@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 require 'csv'
-require 'chdb/chdb'
+require 'chdb/chdb_native'
 require 'chdb/local_result'
 require 'chdb/result_set'
 require 'chdb/result_handler'

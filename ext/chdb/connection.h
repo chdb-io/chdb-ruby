@@ -10,6 +10,8 @@ typedef struct
 
 extern const rb_data_type_t ConnectionType;
 
+void init_connection();
+
 VALUE connection_alloc(VALUE klass);
 
 VALUE connection_initialize(VALUE self, VALUE argc, VALUE argv);

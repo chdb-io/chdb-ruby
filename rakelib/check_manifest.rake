@@ -12,6 +12,7 @@ task :check_manifest do # rubocop:disable Metrics/BlockLength
     adr
     bin
     doc
+    deps
     gems
     issues
     patches
@@ -32,6 +33,7 @@ task :check_manifest do # rubocop:disable Metrics/BlockLength
     .rspec_status
     .ruby-version
     .rubocop.yml
+    dependencies.yml
     ext/chdb/*.{c,h}
     lib/chdb/chdb*.{bundle,so}
     Gemfile*

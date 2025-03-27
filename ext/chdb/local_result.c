@@ -1,5 +1,10 @@
 #include "local_result.h"
 
+#include "constants.h"
+#include "include/chdb.h"
+
+VALUE cLocalResult;
+
 static void local_result_free(void *ptr)
 {
     LocalResult *result = (LocalResult *)ptr;
@@ -16,6 +21,17 @@ const rb_data_type_t LocalResultType =
     "LocalResult",
     {NULL, local_result_free, NULL},
 };
+
+void init_local_result()
+{
+    VALUE mChDB = rb_define_module("ChDB");
+    cLocalResult = rb_define_class_under(mChDB, "LocalResult", rb_cObject);
+    rb_define_alloc_func(cLocalResult, local_result_alloc);
+    rb_define_method(cLocalResult, "buf", local_result_buf, 0);
+    rb_define_method(cLocalResult, "elapsed", local_result_elapsed, 0);
+    rb_define_method(cLocalResult, "rows_read", local_result_rows_read, 0);
+    rb_define_method(cLocalResult, "bytes_read", local_result_bytes_read, 0);
+}
 
 VALUE local_result_alloc(VALUE klass)
 {

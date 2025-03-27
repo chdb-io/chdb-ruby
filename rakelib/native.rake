@@ -46,10 +46,6 @@ end
 Rake::ExtensionTask.new('chdb_native', CHDB_SPEC) do |ext|
   ext.ext_dir = 'ext/chdb'
   ext.lib_dir = 'lib/chdb'
-  ext.cross_compile = true
-  ext.cross_platform = cross_platforms
-  # so extconf.rb knows we're cross-compiling
-  ext.cross_config_options << '--enable-cross-build'
 end
 
 namespace 'gem' do
@@ -104,4 +100,4 @@ task 'set-version-to-timestamp' do
   puts "NOTE: wrote version as \"#{fake_version}\""
 end
 
-CLEAN.add('{ext,lib}/**/*.{o,so}', 'pkg', 'ext/chdb/{include,lib}')
+CLEAN.add('ext/chdb/{include,lib}')

@@ -54,5 +54,7 @@ Gem::Specification.new do |s|
 
   s.rdoc_options = ['--main', 'README.md']
 
+  s.add_dependency 'csv', '~> 3.1'
+
   s.extensions << 'ext/chdb/extconf.rb'
 end
