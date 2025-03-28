@@ -18,10 +18,18 @@ RSpec.describe ChDB::Database do
                 name String)
                 ENGINE = MergeTree()
                 ORDER BY id")
+ 
+    {
+      1 => "Alice",
+      2 => "Bob"
+    }.each do |pair|
+      db.execute "INSERT INTO test_table VALUES ( ?, ? )", pair
+    end
+
+    db.execute("INSERT INTO test_table (id, name)
+                VALUES (?, ?)", ["3", "Charlie"])
+
     db.execute("INSERT INTO test_table (id, name) VALUES
-                (1, 'Alice'),
-                (2, 'Bob'),
-                (3, 'Charlie'),
                 (4, 'David')")
   end
 
@@ -54,7 +62,7 @@ RSpec.describe ChDB::Database do
     it 'create table, insert rows, and returns query results' do
       ChDB::Database.open(test_db_path, results_as_hash: true) do |db|
         create_test_table(db)
-        result = db.execute('SELECT * FROM test_table')
+        result = db.execute('SELECT * FROM test_table ORDER BY id')
         expect(result.to_a).to eq([{ 'id' => '1', 'name' => 'Alice' }, { 'id' => '2', 'name' => 'Bob' },
                                    { 'id' => '3', 'name' => 'Charlie' }, { 'id' => '4', 'name' => 'David' }])
       end
@@ -64,7 +72,7 @@ RSpec.describe ChDB::Database do
       collected = []
       db = ChDB::Database.new(test_db_path, results_as_hash: true)
       create_test_table(db)
-      db.execute('SELECT * FROM test_table') do |row|
+      db.execute('SELECT * FROM test_table ORDER BY id') do |row|
         collected << row
       end
       expect(collected).to eq([{ 'id' => '1', 'name' => 'Alice' }, { 'id' => '2', 'name' => 'Bob' },
@@ -82,7 +90,7 @@ RSpec.describe ChDB::Database do
     it 'query with results_as_hash false' do
       db = ChDB::Database.new(test_db_path, results_as_hash: false)
       create_test_table(db)
-      result = db.execute('SELECT * FROM test_table')
+      result = db.execute('SELECT * FROM test_table ORDER BY id')
       expect(result).to eq([%w[1 Alice], %w[2 Bob], %w[3 Charlie], %w[4 David]])
       db.close
     end
@@ -105,7 +113,7 @@ RSpec.describe ChDB::Database do
     it 'create table, insert rows, and returns query results' do
       ChDB::Database.open(test_db_path, results_as_hash: true) do |db|
         create_test_table(db)
-        result = db.execute2('SELECT * FROM test_table')
+        result = db.execute2('SELECT * FROM test_table ORDER BY id')
         expect(result.to_a).to eq([%w[id name], { 'id' => '1', 'name' => 'Alice' }, { 'id' => '2', 'name' => 'Bob' },
                                    { 'id' => '3', 'name' => 'Charlie' }, { 'id' => '4', 'name' => 'David' }])
       end
@@ -115,7 +123,7 @@ RSpec.describe ChDB::Database do
       collected = []
       db = ChDB::Database.new(test_db_path, results_as_hash: true)
       create_test_table(db)
-      db.execute2('SELECT * FROM test_table') do |row|
+      db.execute2('SELECT * FROM test_table ORDER BY id') do |row|
         collected << row
       end
       expect(collected).to eq([%w[id name], { 'id' => '1', 'name' => 'Alice' }, { 'id' => '2', 'name' => 'Bob' },
@@ -133,7 +141,7 @@ RSpec.describe ChDB::Database do
     it 'query with results_as_hash false' do
       db = ChDB::Database.new(test_db_path, results_as_hash: false)
       create_test_table(db)
-      result = db.execute2('SELECT * FROM test_table')
+      result = db.execute2('SELECT * FROM test_table ORDER BY id')
       expect(result).to eq([%w[id name], %w[1 Alice], %w[2 Bob], %w[3 Charlie], %w[4 David]])
       db.close
     end
@@ -143,7 +151,7 @@ RSpec.describe ChDB::Database do
     it 'query' do
       db = ChDB::Database.new(test_db_path)
       create_test_table(db)
-      result = db.query('SELECT * FROM test_table')
+      result = db.query('SELECT * FROM test_table ORDER BY id')
       expect(result.to_a).to eq([%w[1 Alice], %w[2 Bob], %w[3 Charlie], %w[4 David]])
       db.close
     end
@@ -153,7 +161,7 @@ RSpec.describe ChDB::Database do
     it 'query with format' do
       db = ChDB::Database.new(test_db_path)
       create_test_table(db)
-      result = db.query_with_format('SELECT * FROM test_table', [], 'CSV')
+      result = db.query_with_format('SELECT * FROM test_table ORDER BY id', [], 'CSV')
       expect(result).to eq("1,\"Alice\"\n2,\"Bob\"\n3,\"Charlie\"\n4,\"David\"\n")
       db.close
     end
@@ -163,7 +171,7 @@ RSpec.describe ChDB::Database do
     it 'get first row' do
       db = ChDB::Database.new(test_db_path)
       create_test_table(db)
-      result = db.get_first_row('SELECT * FROM test_table')
+      result = db.get_first_row('SELECT * FROM test_table ORDER BY id')
       expect(result).to eq(%w[1 Alice])
       db.close
     end
@@ -171,7 +179,7 @@ RSpec.describe ChDB::Database do
     it 'get first row with hash' do
       db = ChDB::Database.new(test_db_path, results_as_hash: true)
       create_test_table(db)
-      result = db.get_first_row('SELECT * FROM test_table')
+      result = db.get_first_row('SELECT * FROM test_table ORDER BY id')
       expect(result).to eq({ 'id' => '1', 'name' => 'Alice' })
       db.close
     end
@@ -181,7 +189,7 @@ RSpec.describe ChDB::Database do
     it 'get first value' do
       db = ChDB::Database.new(test_db_path)
       create_test_table(db)
-      result = db.get_first_value('SELECT * FROM test_table')
+      result = db.get_first_value('SELECT * FROM test_table ORDER BY id')
       expect(result).to eq('1')
       db.close
     end
@@ -189,7 +197,7 @@ RSpec.describe ChDB::Database do
     it 'get first value with hash' do
       db = ChDB::Database.new(test_db_path, results_as_hash: true)
       create_test_table(db)
-      result = db.get_first_value('SELECT * FROM test_table')
+      result = db.get_first_value('SELECT * FROM test_table ORDER BY id')
       expect(result).to eq('1')
       db.close
     end

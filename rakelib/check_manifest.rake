@@ -42,6 +42,8 @@ task :check_manifest do # rubocop:disable Metrics/BlockLength
     [0-9]*
     *.gemspec
     *.so
+    CHANGELOG.md
+    ext/chdb/extconf.rb
   ]
 
   intended_directories = Dir.children('.')

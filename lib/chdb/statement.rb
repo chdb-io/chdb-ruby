@@ -1,7 +1,12 @@
 # frozen_string_literal: true
 
 require 'csv'
-require 'chdb/chdb_native'
+begin
+  RUBY_VERSION =~ /(\d+\.\d+)/
+  require "chdb/#{Regexp.last_match(1)}/chdb_native"
+rescue LoadError
+  require 'chdb/chdb_native'
+end
 require 'chdb/local_result'
 require 'chdb/result_set'
 require 'chdb/result_handler'

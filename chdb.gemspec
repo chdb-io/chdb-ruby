@@ -7,7 +7,7 @@ rescue LoadError
 end
 
 Gem::Specification.new do |s|
-  s.name = 'chdb'
+  s.name = 'chdb-ruby'
   s.version = defined?(ChDB::VERSION) ? ChDB::VERSION : '0.0.0'
 
   s.summary = 'Ruby library to interface with the chDB database engine (https://clickhouse.com/docs/chdb).'
@@ -34,7 +34,8 @@ Gem::Specification.new do |s|
   }
 
   s.files = [
-    'CHANGELOG.md',
+    # 'CHANGELOG.md',
+    'INSTALLATION.md',
     'LICENSE',
     'README.md',
     'lib/chdb.rb',
@@ -56,5 +57,5 @@ Gem::Specification.new do |s|
 
   s.add_dependency 'csv', '~> 3.1'
 
-  s.extensions << 'ext/chdb/extconf.rb'
+  # s.extensions << 'ext/chdb/extconf.rb'
 end

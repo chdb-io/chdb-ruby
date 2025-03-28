@@ -1,6 +1,11 @@
 # frozen_string_literal: true
 
-require 'chdb/chdb_native'
+begin
+  RUBY_VERSION =~ /(\d+\.\d+)/
+  require "chdb/#{Regexp.last_match(1)}/chdb_native"
+rescue LoadError
+  require 'chdb/chdb_native'
+end
 require 'chdb/data_path'
 require 'chdb/statement'
 

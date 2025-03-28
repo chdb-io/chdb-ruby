@@ -9,6 +9,8 @@ module ChDB
   module ExtConf
     class << self
       def configure
+        configure_cross_compiler
+
         download_and_extract
 
         configure_extension
@@ -76,8 +78,8 @@ module ChDB
         return ENV['TARGET'].strip if ENV['TARGET'] && !ENV['TARGET'].strip.empty?
 
         case RUBY_PLATFORM
-        when /aarch64-linux/ then 'aarch64-linux-gnu'
-        when /x86_64-linux/  then 'x86_64-linux-gnu'
+        when /aarch64-linux/ then 'aarch64-linux'
+        when /x86_64-linux/  then 'x86_64-linux'
         when /arm64-darwin/  then 'arm64-darwin'
         when /x86_64-darwin/ then 'x86_64-darwin'
         else
@@ -96,8 +98,8 @@ module ChDB
 
       def get_file_name(target_platform)
         case target_platform
-        when 'aarch64-linux-gnu' then 'linux-aarch64-libchdb.tar.gz'
-        when 'x86_64-linux-gnu' then 'linux-x86_64-libchdb.tar.gz'
+        when 'aarch64-linux' then 'linux-aarch64-libchdb.tar.gz'
+        when 'x86_64-linux' then 'linux-x86_64-libchdb.tar.gz'
         when 'arm64-darwin'     then 'macos-arm64-libchdb.tar.gz'
         when 'x86_64-darwin'    then 'macos-x86_64-libchdb.tar.gz'
         else raise "Unsupported platform: #{target_platform}"
@@ -136,11 +138,11 @@ module ChDB
           FileUtils.mkdir_p(dest)
           FileUtils.cp_r(Dir.glob(src), dest, remove_destination: true)
 
-          target_platform = determine_target_platform
-          if target_platform.include?('darwin') && (pattern == '*.so')
-            system("install_name_tool -id '@rpath/libchdb.so' #{File.join(dest, 'libchdb.so')}")
-            system("codesign -f -s - #{File.join(dest, 'libchdb.so')}")
-          end
+          # target_platform = determine_target_platform
+          # if target_platform.include?('darwin') && (pattern == '*.so')
+          #   system("install_name_tool -id '@rpath/libchdb.so' #{File.join(dest, 'libchdb.so')}")
+          #   system("codesign -f -s - #{File.join(dest, 'libchdb.so')}")
+          # end
         end
       end
 

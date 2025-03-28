@@ -7,8 +7,8 @@ require 'rake_compiler_dock'
 require 'yaml'
 
 cross_platforms = %w[
-  aarch64-linux-gnu
-  x86_64-linux-gnu
+  aarch64-linux
+  x86_64-linux
   arm64-darwin
   x86_64-darwin
 ]
@@ -36,16 +36,12 @@ def add_file_to_gem(relative_source_path)
   CHDB_SPEC.files << relative_source_path
 end
 
-task gem_build_path do
-  dependencies = YAML.load_file(File.join(__dir__, '..', 'dependencies.yml'), symbolize_names: true)
-  sqlite_tarball = File.basename(dependencies[:sqlite3][:files].first[:url])
-  archive = Dir.glob(File.join('ports', 'archives', sqlite_tarball)).first
-  add_file_to_gem(archive)
-end
-
 Rake::ExtensionTask.new('chdb_native', CHDB_SPEC) do |ext|
   ext.ext_dir = 'ext/chdb'
   ext.lib_dir = 'lib/chdb'
+  ext.cross_compile = true
+  ext.cross_platform = cross_platforms
+  ext.cross_config_options << '--enable-cross-build' # so extconf.rb knows we're cross-compiling
 end
 
 namespace 'gem' do
@@ -70,7 +66,7 @@ namespace 'gem' do
   end
 
   desc 'build native gem for all platforms'
-  task 'all' => [cross_platforms, 'gem'].flatten
+  task 'all' => [cross_platforms].flatten
 end
 
 desc 'Temporarily set VERSION to a unique timestamp'
