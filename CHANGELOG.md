@@ -1,0 +1,3 @@
+# chdb-ruby Changelog
+
+## [Unreleased]

@@ -1,8 +1,13 @@
 # frozen_string_literal: true
 
-require "chdb/chdb"
-require "chdb/data_path"
-require "chdb/statement"
+begin
+  RUBY_VERSION =~ /(\d+\.\d+)/
+  require "chdb/#{Regexp.last_match(1)}/chdb_native"
+rescue LoadError
+  require 'chdb/chdb_native'
+end
+require 'chdb/data_path'
+require 'chdb/statement'
 
 module ChDB
   # Represents a database connection and provides methods to interact with the database.
@@ -81,14 +86,14 @@ module ChDB
       end
     end
 
-    def execute2(sql, *bind_vars, &block) # rubocop:disable Metrics/MethodLength
+    def execute2(sql, *bind_vars, &) # rubocop:disable Metrics/MethodLength
       prepare(sql) do |stmt|
         result = stmt.execute(*bind_vars)
         stmt.parse
 
         if block_given?
           yield stmt.columns
-          result.each(&block)
+          result.each(&)
         else
           return result.each_with_object([stmt.columns]) do |row, arr|
                    arr << row
@@ -106,7 +111,7 @@ module ChDB
       end
     end
 
-    def query_with_format(sql, bind_vars = [], format = "CSV")
+    def query_with_format(sql, bind_vars = [], format = 'CSV')
       result = prepare(sql).execute_with_format(bind_vars, format)
       if block_given?
         yield result

@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
-require "cgi"
-require "fileutils"
-require "tempfile"
-require "chdb/constants"
-require "chdb/errors"
+require 'cgi'
+require 'fileutils'
+require 'tempfile'
+require 'chdb/constants'
+require 'chdb/errors'
 
 module ChDB
   # Represents the data path configuration for ChDB.
@@ -22,20 +22,20 @@ module ChDB
     end
 
     def generate_arguments # rubocop:disable Metrics/MethodLength
-      args = ["clickhouse", "--path=#{@dir_path}"]
+      args = ['clickhouse', "--path=#{@dir_path}"]
       excluded_keys = %i[results_as_hash readonly readwrite flags]
 
       @query_params.each do |key, value|
         next if excluded_keys.include?(key)
 
         case key.to_s
-        when "udf_path"
+        when 'udf_path'
           udf_value = value.to_s
-          args += ["--", "--user_scripts_path=#{udf_value}",
+          args += ['--', "--user_scripts_path=#{udf_value}",
                    "--user_defined_executable_functions_config=#{udf_value}/*.xml"]
           next
-        when "--"
-          args << "--"
+        when '--'
+          args << '--'
           next
         end
 
@@ -47,7 +47,7 @@ module ChDB
                 end
       end
 
-      args << "--readonly=1" if (@mode & Constants::Open::READONLY) != 0
+      args << '--readonly=1' if @mode.anybits?(Constants::Open::READONLY)
 
       args
     end
@@ -66,7 +66,7 @@ module ChDB
     end
 
     def parse_uri(uri)
-      path, query_str = uri.split("?", 2) unless uri.nil?
+      path, query_str = uri.split('?', 2) unless uri.nil?
       @query_params = CGI.parse(query_str.to_s).transform_values(&:last) unless query_str.nil?
       remove_file_prefix(path)
     end
@@ -77,9 +77,9 @@ module ChDB
     end
 
     def directory_path(path)
-      if path.nil? || path.empty? || path == ":memory:"
+      if path.nil? || path.empty? || path == ':memory:'
         @is_tmp = true
-        @dir_path = Dir.mktmpdir("chdb_")
+        @dir_path = Dir.mktmpdir('chdb_')
       else
         @dir_path = File.expand_path(path)
         ensure_directory_exists
@@ -87,13 +87,13 @@ module ChDB
     end
 
     def ensure_directory_exists
-      if (@mode & Constants::Open::CREATE).zero?
+      if @mode.nobits?(Constants::Open::CREATE)
         raise DirectoryNotFoundException, "Directory #{@dir_path} required" unless Dir.exist?(@dir_path)
 
         return
       end
 
-      FileUtils.mkdir_p(@dir_path, mode: 0o755) unless Dir.exist?(@dir_path)
+      FileUtils.mkdir_p(@dir_path, mode: 0o755)
     end
 
     def check_params # rubocop:disable Metrics/MethodLength
@@ -101,21 +101,21 @@ module ChDB
       @mode = Constants::Open::READONLY if @query_params[:readonly]
 
       if @query_params[:readwrite]
-        raise InvalidArgumentException, "conflicting options: readonly and readwrite" if @query_params[:readonly]
+        raise InvalidArgumentException, 'conflicting options: readonly and readwrite' if @query_params[:readonly]
 
         @mode = Constants::Open::READWRITE
       end
 
       return unless @query_params[:flags]
       if @query_params[:readonly] || @query_params[:readwrite]
-        raise InvalidArgumentException, "conflicting options: flags with readonly and/or readwrite"
+        raise InvalidArgumentException, 'conflicting options: flags with readonly and/or readwrite'
       end
 
       @mode = @query_params[:flags]
     end
 
     def remove_file_prefix(str)
-      str.sub(/\Afile:/, "")
+      str.sub(/\Afile:/, '')
     end
   end
 end

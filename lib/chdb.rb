@@ -2,11 +2,11 @@
 
 begin
   RUBY_VERSION =~ /(\d+\.\d+)/
-  require "ChDB/#{Regexp.last_match(1)}/chdb"
+  require "chdb/#{Regexp.last_match(1)}/chdb_native"
 rescue LoadError
-  require "ChDB/chdb"
+  require 'chdb/chdb_native'
 end
 
-require "chdb/database"
-require "chdb/version"
-require "chdb/version_info"
+require 'chdb/database'
+require 'chdb/version'
+require 'chdb/version_info'

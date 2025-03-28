@@ -1,0 +1,57 @@
+AllCops:
+  Exclude:
+    - 'vendor/**/*'
+    - 'spec/**/*' 
+    - 'tmp/**/*'
+    - 'ext/**/extconf.rb'
+
+  NewCops: enable
+
+  TargetRubyVersion: 3.1
+  
+  AutoCorrect: true
+  
+  SuggestExtensions: false
+
+Style:
+  StringLiterals:
+    EnforcedStyle: double_quotes
+
+  ParameterLists:
+    EnforcedStyle: compact
+
+  RedundantSelf:
+    Enabled: true
+
+  ModifierForm:
+    AllowModifierForm: true
+
+Layout:
+  LineLength:
+    Max: 120
+
+  FirstParameterIndentation:
+    Enabled: true
+    EnforcedStyle: indented
+
+  Indentation:
+    Width: 2
+
+Metrics:
+  ClassLength:
+    Max: 200
+
+  MethodLength:
+    Max: 20
+
+  ParameterLists:
+    Max: 5
+
+Lint/AmbiguousOperator:
+  Enabled: false
+
+Style/Documentation:
+  Enabled: false 
+
+Style/AccessModifierDeclarations:
+  Enabled: false 
