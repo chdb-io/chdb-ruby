@@ -120,3 +120,9 @@ You can file the bug at the [github issues page](https://github.com/chdb-io/chdb
 ## License
 
 This library is licensed under `Apache License 2.0`, see [`LICENSE`](./LICENSE).
+
+## Acknowledgments
+Special thanks to the following projects:
+
+* [chDB 2.0 Ruby client](https://github.com/g3ortega/chdb) – As the foundational work for chDB 2.0, its design and architecture inspired this chDB 3.0 Ruby client.
+* [SQLite3](https://github.com/sparklemotion/sqlite3-ruby) – We adopted patterns from its elegant Ruby API design.
