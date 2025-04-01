@@ -1,9 +1,28 @@
 #include "connection.h"
 
+#include "chdb_handle.h"
 #include "constants.h"
 #include "exception.h"
 #include "include/chdb.h"
 #include "local_result.h"
+
+static void connection_free(void *ptr)
+{
+    Connection *conn = (Connection *)ptr;
+    DEBUG_PRINT("Closing connection: %p", (void*)conn->c_conn);
+    if (conn->c_conn)
+    {
+        close_conn_ptr(conn->c_conn);
+        conn->c_conn = NULL;
+    }
+    free(conn);
+}
+
+const rb_data_type_t ConnectionType =
+{
+    "Connection",
+    {NULL, connection_free, NULL},
+};
 
 void init_connection()
 {
@@ -39,7 +58,7 @@ VALUE connection_initialize(VALUE self, VALUE argc, VALUE argv)
 
     Connection *conn;
     TypedData_Get_Struct(self, Connection, &ConnectionType, conn);
-    conn->c_conn = connect_chdb(c_argc, c_argv);
+    conn->c_conn = connect_chdb_ptr(c_argc, c_argv);
 
     if (!conn->c_conn)
     {
@@ -60,7 +79,7 @@ VALUE connection_query(VALUE self, VALUE query, VALUE format)
     Check_Type(query, T_STRING);
     Check_Type(format, T_STRING);
 
-    struct local_result_v2 *c_result = query_conn(
+    struct local_result_v2 *c_result = query_conn_ptr(
                                            *conn->c_conn,
                                            StringValueCStr(query),
                                            StringValueCStr(format)
@@ -92,27 +111,8 @@ VALUE connection_close(VALUE self)
 
     if (conn->c_conn)
     {
-        close_conn(conn->c_conn);
+        close_conn_ptr(conn->c_conn);
         conn->c_conn = NULL;
     }
     return Qnil;
 }
-
-static void connection_free(void *ptr)
-{
-    Connection *conn = (Connection *)ptr;
-    DEBUG_PRINT("Closing connection: %p", (void*)conn->c_conn);
-    if (conn->c_conn)
-    {
-        close_conn(conn->c_conn);
-    }
-    free(conn);
-}
-
-const rb_data_type_t ConnectionType =
-{
-    "Connection",
-    {NULL, connection_free, NULL},
-};
-
-// 其他 Connection 方法保持不变...

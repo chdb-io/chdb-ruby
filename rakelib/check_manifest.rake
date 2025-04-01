@@ -33,9 +33,8 @@ task :check_manifest do # rubocop:disable Metrics/BlockLength
     .rspec_status
     .ruby-version
     .rubocop.yml
-    dependencies.yml
-    ext/chdb/*.{c,h}
     lib/chdb/chdb*.{bundle,so}
+    ext/chdb/include/chdb.h
     Gemfile*
     Rakefile
     [a-z]*.{log,out}
@@ -43,7 +42,6 @@ task :check_manifest do # rubocop:disable Metrics/BlockLength
     *.gemspec
     *.so
     CHANGELOG.md
-    ext/chdb/extconf.rb
   ]
 
   intended_directories = Dir.children('.')

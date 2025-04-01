@@ -38,6 +38,18 @@ Gem::Specification.new do |s|
     'INSTALLATION.md',
     'LICENSE',
     'README.md',
+    'dependencies.yml',
+    'ext/chdb/chdb_handle.c',
+    'ext/chdb/chdb_handle.h',
+    'ext/chdb/chdb.c',
+    'ext/chdb/connection.c',
+    'ext/chdb/connection.h',
+    'ext/chdb/constants.h',
+    'ext/chdb/exception.c',
+    'ext/chdb/exception.h',
+    'ext/chdb/extconf.rb',
+    'ext/chdb/local_result.c',
+    'ext/chdb/local_result.h',
     'lib/chdb.rb',
     'lib/chdb/constants.rb',
     'lib/chdb/data_path.rb',
@@ -57,5 +69,5 @@ Gem::Specification.new do |s|
 
   s.add_dependency 'csv', '~> 3.1'
 
-  # s.extensions << 'ext/chdb/extconf.rb'
+  s.extensions << 'ext/chdb/extconf.rb'
 end

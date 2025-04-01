@@ -18,34 +18,39 @@ module ChDB
         create_makefile('chdb/chdb_native')
       end
 
+      def compiled?
+        return false if cross_build?
+
+        major_version = RUBY_VERSION.match(/(\d+\.\d+)/)[1]
+        version_dir = File.join(package_root_dir, 'lib', 'chdb', major_version)
+
+        extension = if determine_target_platform.include?('darwin')
+                      'bundle'
+                    else
+                      'so'
+                    end
+        lib_file = "#{libname}.#{extension}"
+
+        File.exist?(File.join(version_dir, lib_file))
+      end
+
       def configure_cross_compiler
         RbConfig::CONFIG['CC'] = RbConfig::MAKEFILE_CONFIG['CC'] = ENV['CC'] if ENV['CC']
         ENV['CC'] = RbConfig::CONFIG['CC']
       end
 
+      def cross_build?
+        enable_config('cross-build')
+      end
+
       def libname
-        'chdb'
+        'chdb_native'
       end
 
       def configure_extension
         include_path = File.expand_path('ext/chdb/include', package_root_dir)
         append_cppflags("-I#{include_path}")
-
-        lib_path = File.expand_path('ext/chdb/lib', package_root_dir)
-        append_ldflags("-L#{lib_path}")
-
-        target_platform = determine_target_platform
-        if target_platform.include?('darwin')
-          append_ldflags('-Wl,-rpath,@loader_path/../lib')
-        else
-          append_ldflags("-Wl,-rpath,'$$ORIGIN/../lib'")
-        end
-
         abort_could_not_find('chdb.h') unless find_header('chdb.h', include_path)
-
-        return if find_library(libname, nil, lib_path)
-
-        abort_could_not_find(libname)
       end
 
       def abort_could_not_find(missing)
@@ -60,9 +65,25 @@ module ChDB
         target_platform = determine_target_platform
         version = fetch_chdb_version
         download_dir = determine_download_directory(target_platform, version)
+        need_download = false
 
-        unless Dir.exist?(download_dir)
+        if Dir.exist?(download_dir)
+          required_files = [
+            File.join(download_dir, 'chdb.h'),
+            File.join(download_dir, 'libchdb.so')
+          ]
+
+          need_download = !required_files.all? { |f| File.exist?(f) }
+          if need_download
+            puts 'Missing required files, cleaning download directory...'
+            FileUtils.rm_rf(Dir.glob("#{download_dir}/*"))
+          end
+        else
           FileUtils.mkdir_p(download_dir)
+          need_download = true
+        end
+
+        if need_download
           file_name = get_file_name(target_platform)
           url = build_download_url(version, file_name)
           download_tarball(url, download_dir, file_name)
@@ -83,7 +104,7 @@ module ChDB
         when /arm64-darwin/  then 'arm64-darwin'
         when /x86_64-darwin/ then 'x86_64-darwin'
         else
-          'unknown-platform'
+          raise ArgumentError, "Unsupported platform: #{RUBY_PLATFORM}."
         end
       end
 
@@ -114,8 +135,19 @@ module ChDB
         tarball = File.join(download_dir, file_name)
         puts "Downloading chdb library for #{determine_target_platform}..."
 
-        URI.open(url) do |remote| # rubocop:disable Security/Open
-          IO.copy_stream(remote, tarball)
+        max_retries = 3
+        retries = 0
+
+        begin
+          URI.open(url) do |remote| # rubocop:disable Security/Open
+            IO.copy_stream(remote, tarball)
+          end
+        rescue StandardError => e
+          raise "Failed to download after #{max_retries} attempts: #{e.message}" unless retries < max_retries
+
+          retries += 1
+          puts "Download failed: #{e.message}. Retrying (attempt #{retries}/#{max_retries})..."
+          retry
         end
       end
 
@@ -125,24 +157,27 @@ module ChDB
       end
 
       def copy_files(download_dir, _version)
-        ext_chdb_path = File.join(package_root_dir, 'ext/chdb')
-        [%w[*.h], %w[*.so], %w[*.dylib]].each do |(glob_pattern)|
-          src_dir, pattern = File.split(glob_pattern)
-
+        [%w[*.h], %w[*.so]].each do |(glob_pattern)|
+          # Removed the unused variable src_dir
+          pattern = File.basename(glob_pattern)
           dest_subdir = case pattern
                         when '*.h' then 'include'
                         else 'lib'
                         end
-          src = File.join(download_dir, src_dir, pattern)
-          dest = File.join(ext_chdb_path, dest_subdir)
-          FileUtils.mkdir_p(dest)
-          FileUtils.cp_r(Dir.glob(src), dest, remove_destination: true)
+          dest_dir = File.join(package_root_dir, 'ext/chdb', dest_subdir)
+          src_files = Dir.glob(File.join(download_dir, pattern))
 
-          # target_platform = determine_target_platform
-          # if target_platform.include?('darwin') && (pattern == '*.so')
-          #   system("install_name_tool -id '@rpath/libchdb.so' #{File.join(dest, 'libchdb.so')}")
-          #   system("codesign -f -s - #{File.join(dest, 'libchdb.so')}")
-          # end
+          extra_dirs = []
+          extra_dirs << File.join(package_root_dir, 'lib/chdb/lib') if pattern == '*.so'
+
+          ([dest_dir] + extra_dirs).each do |dest|
+            FileUtils.mkdir_p(dest)
+
+            src_files.each do |src_file|
+              dest_file = File.join(dest, File.basename(src_file))
+              FileUtils.ln_s(File.expand_path(src_file), dest_file, force: true)
+            end
+          end
         end
       end
 
