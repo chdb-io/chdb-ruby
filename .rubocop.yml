@@ -4,6 +4,7 @@ AllCops:
     - 'spec/**/*' 
     - 'tmp/**/*'
     - 'ext/**/extconf.rb'
+    - 'pkg/**/*'
 
   NewCops: enable
 

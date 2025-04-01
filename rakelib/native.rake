@@ -15,7 +15,7 @@ cross_platforms = %w[
 
 RakeCompilerDock.set_ruby_cc_version('~> 3.1')
 
-# Gem::PackageTask.new(CHDB_SPEC).define # packaged_tarball version of the gem for platform=ruby
+Gem::PackageTask.new(CHDB_SPEC).define # packaged_tarball version of the gem for platform=ruby
 # 'package' task for all the native platforms
 task 'package' => cross_platforms.map { |p| "gem:#{p}" }
 
@@ -66,7 +66,7 @@ namespace 'gem' do
   end
 
   desc 'build native gem for all platforms'
-  task 'all' => [cross_platforms].flatten
+  task 'all' => [cross_platforms, 'gem'].flatten
 end
 
 desc 'Temporarily set VERSION to a unique timestamp'
@@ -96,4 +96,4 @@ task 'set-version-to-timestamp' do
   puts "NOTE: wrote version as \"#{fake_version}\""
 end
 
-CLEAN.add('ext/chdb/{include,lib}')
+CLEAN.add('ext/chdb/{include,lib}', '{lib}/**/*.{bundle,o,so}', '{lib}/**/**/*.{bundle,o,so}')
