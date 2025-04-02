@@ -1,7 +1,6 @@
 #include "local_result.h"
 
 #include "constants.h"
-#include "include/chdb.h"
 #include "chdb_handle.h"
 
 VALUE cLocalResult;

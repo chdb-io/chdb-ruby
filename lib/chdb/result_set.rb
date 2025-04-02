@@ -54,4 +54,44 @@ module ChDB
   class HashResultSet < ResultSet # :nodoc:
     alias next next_hash
   end
+
+  class StreamingResultSet
+    include Enumerable
+
+    def initialize(db, streaming_result)
+      @db = db
+      @streaming_result = streaming_result
+      @done = false
+    end
+
+    def eof?
+      @done
+    end
+
+    def next
+      return nil if @done
+
+      result = @db.conn.fetch_streaming_result(@streaming_result)
+
+      if result.nil? || result.rows_read == 0
+        @done = true
+        nil
+      else
+        result
+      end
+    end
+
+    def each
+      while (node = self.next)
+        yield node
+      end
+    end
+
+    def cancel
+      return nil if @done
+
+      @db.conn.cancel_streaming_query(@streaming_result)
+      @done = true
+    end
+  end
 end

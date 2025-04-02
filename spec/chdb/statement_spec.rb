@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require 'json' 
+require 'json'
 require 'spec_helper'
 
 RSpec.describe ChDB::Statement do
@@ -62,7 +62,7 @@ RSpec.describe ChDB::Statement do
       expect {
         stmt.execute()
       }.not_to raise_error
-      
+
       stmt = db.prepare("SHOW TABLES")
       expect(stmt.execute().to_a).to satisfy { |result|
         result.any? { |row| row == ['statement_test'] }
@@ -72,7 +72,7 @@ RSpec.describe ChDB::Statement do
       expect {
         stmt.execute()
       }.not_to raise_error
-     
+
       stmt = db.prepare('SHOW TABLES')
       expect(stmt.execute().to_a).not_to include(['statement_test'])
     end
@@ -83,11 +83,11 @@ RSpec.describe ChDB::Statement do
       stmt = db.prepare("SELECT number FROM system.numbers LIMIT 3")
       expect(stmt.execute!).to eq([['0'], ['1'], ['2']])
     end
-    
+
     it 'return hash array when results_as_hash enabled' do
       db.close()
       hash_db = ChDB::Database.new(test_db_path, results_as_hash: true)
-      
+
       begin
         stmt = hash_db.prepare("SELECT 1 AS value, 'hello' AS greeting")
         result = stmt.execute!

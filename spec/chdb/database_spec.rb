@@ -11,12 +11,12 @@ RSpec.describe ChDB::Database do
   #   FileUtils.rm_rf(test_db_path2) if Dir.exist?(test_db_path2)
   # end
 
-  # after do 
-  #   FileUtils.remove_entry(test_db_path) if Dir.exist?(test_db_path) 
+  # after do
+  #   FileUtils.remove_entry(test_db_path) if Dir.exist?(test_db_path)
   #   FileUtils.remove_entry(test_db_path2) if Dir.exist?(test_db_path2)
   # end
 
-  def create_empty_table(db) 
+  def create_empty_table(db)
     db.execute('CREATE DATABASE IF NOT EXISTS test')
     db.execute('DROP TABLE IF EXISTS test.test_table')
     db.execute("CREATE TABLE test.test_table(
@@ -26,9 +26,9 @@ RSpec.describe ChDB::Database do
                 ORDER BY id")
   end
 
-  def create_test_table(db) 
-    create_empty_table(db) 
- 
+  def create_test_table(db)
+    create_empty_table(db)
+
     {
       1 => "Alice",
       2 => "Bob"
@@ -47,12 +47,12 @@ RSpec.describe ChDB::Database do
     it 'open database without block' do
       db = ChDB::Database.open("file:#{test_db_path}")
       expect(db).to be_a(ChDB::Database)
-      expect(db.closed?).to be false 
+      expect(db.closed?).to be false
       expect(db.readonly?).to be false
       expect(db.results_as_hash).to be false
       db.close()
-      expect(db.closed?).to be true 
-    end  
+      expect(db.closed?).to be true
+    end
 
     it 'auto-closes database with block' do
       db = nil
@@ -65,7 +65,7 @@ RSpec.describe ChDB::Database do
       end
       expect(db.closed?).to be true
     end
-    
+
     it 'raises error when open database' do
       db1 = ChDB::Database.open(test_db_path, results_as_hash: true)
       expect { ChDB::Database.new(test_db_path, results_as_hash: true) }.to raise_error(ChDB::InternalException, /Existing database/)
@@ -75,11 +75,11 @@ RSpec.describe ChDB::Database do
       result = db2.execute('SELECT 1 AS value')
       expect(result).to eq([["1"]])
       db2.close()
-      
+
       db3 = ChDB::Database.new(test_db_path) 
       expect { ChDB::Database.new(test_db_path, results_as_hash: true) }.to raise_error(ChDB::InternalException, /Existing database/)
       db3.close()
-      
+
       ChDB::Database.open(test_db_path) do |database|
         db = database
         expect(db).to be_a(ChDB::Database)
@@ -87,10 +87,10 @@ RSpec.describe ChDB::Database do
         expect(db.readonly?).to be false
         expect(db.results_as_hash).to be false
       end
-      db4 = ChDB::Database.new(test_db_path) 
+      db4 = ChDB::Database.new(test_db_path)
       db4.close()
     end
-    
+
     it 'open, close, open database' do
       db = ChDB::Database.open(test_db_path)
       create_test_table(db)
@@ -122,37 +122,37 @@ RSpec.describe ChDB::Database do
         result = db.execute('SELECT 1 AS value')
         expect(result).to eq([{ 'value' => '1' }])
       end
-      
+
       ChDB::Database.open(test_db_path) do |db|
         result = db.execute("SELECT number FROM system.numbers LIMIT 3")
         expect(result).to eq([["0"], ["1"], ["2"]])
       end
     end
-    
+
     it 'handles positional parameters' do
       ChDB::Database.open(test_db_path) do |db|
         result = db.execute("SELECT ? * ? AS product", [6, 7])
         expect(result).to eq([["42"]])
       end
     end
-    
+
     it 'processes different data types' do
       ChDB::Database.open(test_db_path) do |db|
         result = db.execute(
           "SELECT ?, ?, ?",
-          ["O'Reilly", 3.14, false] 
+          ["O'Reilly", 3.14, false]
         )
         expect(result).to eq([["O'Reilly", '3.14', '0']])
       end
     end
-    
+
     it 'raises error when parameter count mismatch' do
       ChDB::Database.open(test_db_path) do |db|
         expect {
           db.execute("SELECT ? + ?", [10])
         }.to raise_error(ChDB::SQLException)
       end
-      
+
       ChDB::Database.open(test_db_path) do |db|
         expect {
           db.execute("SELECT ? + ?", [10, 11, 22])
@@ -201,51 +201,51 @@ RSpec.describe ChDB::Database do
       expect(result).to eq([%w[1 Alice], %w[2 Bob], %w[3 Charlie], %w[4 David]])
       db.close
     end
-    
+
     it 'multi threads query' do
       ChDB::Database.open(test_db_path) do |db|
         create_test_table(db)
-        
+
         expected_results = [%w[1 Alice], %w[2 Bob], %w[3 Charlie], %w[4 David]]
         thread_count = 5
         results = Array.new(thread_count, nil)
         threads = []
-  
+
         thread_count.times do |i|
           threads << Thread.new do
             results[i] = db.execute("SELECT * FROM test.test_table ORDER BY id")
           end
         end
-  
+
         threads.each(&:join)
-  
+
         results.each do |result|
           expect(result).to eq(expected_results)
         end
       end
     end
-    
+
     it 'multi threads query with params' do
       ChDB::Database.open(test_db_path) do |db|
         create_test_table(db)
-  
+
         queries = [
           { sql: "SELECT name FROM test.test_table WHERE id = ? ORDER BY id", params: [1], expected: [["Alice"]] },
           { sql: "SELECT id FROM test.test_table WHERE name = ? ORDER BY id", params: ["Bob"], expected: [["2"]] },
           { sql: "SELECT * FROM test.test_table WHERE id > ? ORDER BY id", params: [2], expected: [%w[3 Charlie], %w[4 David]] }
         ]
-  
+
         results = []
         threads = []
-  
-        queries.each_with_index do |q, idx| 
+
+        queries.each_with_index do |q, idx|
           threads << Thread.new do
-            results[idx] = db.execute(q[:sql], q[:params]) 
+            results[idx] = db.execute(q[:sql], q[:params])
           end
         end
-  
+
         threads.each(&:join)
-  
+
         expect(results[0]).to eq(queries[0][:expected])
         expect(results[1]).to eq(queries[1][:expected])
         expect(results[2]).to eq(queries[2][:expected])
@@ -265,28 +265,28 @@ RSpec.describe ChDB::Database do
           collected << row
         end
         expect(collected).to eq([])
+      end
     end
-    end  
 
     it 'returns query results with simple query' do
       ChDB::Database.open(test_db_path, results_as_hash: true) do |db|
         result = db.execute2('SELECT 1 AS value')
         expect(result).to eq([['value'], { 'value' => '1' }])
       end
-      
+
       ChDB::Database.open(test_db_path) do |db|
         result = db.execute2("SELECT number FROM system.numbers LIMIT 2")
         expect(result).to eq([["number"], ["0"], ["1"]])
       end
     end
-    
+
     it 'handles loose parameters' do
       ChDB::Database.open(test_db_path) do |db|
         result = db.execute2("SELECT ? || ? AS combined", "Hello", "World")
         expect(result).to eq([["combined"], ["HelloWorld"]])
       end
     end
-    
+
     it 'processes array parameters with splat' do
       ChDB::Database.open(test_db_path) do |db|
         params = [41, 42]
@@ -294,7 +294,7 @@ RSpec.describe ChDB::Database do
         expect(result[1]).to eq(['41', '42'])
       end
     end
-    
+
     it 'yields headers and rows with block' do
       headers = []
       collected = []
@@ -307,14 +307,14 @@ RSpec.describe ChDB::Database do
       expect(headers).to eq(["number", "plus(number, 1)"])
       expect(collected.size).to eq(3)
     end
-    
+
     it 'returns hash results when results_as_hash enabled' do
       ChDB::Database.open(test_db_path, results_as_hash: true) do |db|
         result = db.execute2("SELECT 1 AS value")
         expect(result).to eq([["value"], { "value" => "1" }])
       end
     end
-  
+
     it 'raises error with invalid parameter types' do
       ChDB::Database.open(test_db_path) do |db|
         expect {
@@ -364,51 +364,51 @@ RSpec.describe ChDB::Database do
       expect(result).to eq([%w[id name], %w[1 Alice], %w[2 Bob], %w[3 Charlie], %w[4 David]])
       db.close
     end
-    
+
     it 'multi threads query' do
       ChDB::Database.open(test_db_path) do |db|
         create_test_table(db)
-        
+
         expected_results = [%w[id name], %w[1 Alice], %w[2 Bob], %w[3 Charlie], %w[4 David]]
         thread_count = 5
         results = Array.new(thread_count, nil)
         threads = []
-  
+
         thread_count.times do |i|
           threads << Thread.new do
             results[i] = db.execute2("SELECT * FROM test.test_table ORDER BY id")
           end
         end
-  
+
         threads.each(&:join)
-  
+
         results.each do |result|
           expect(result).to eq(expected_results)
         end
       end
     end
-    
+
     it 'multi threads query with params' do
       ChDB::Database.open(test_db_path) do |db|
         create_test_table(db)
-  
+
         queries = [
           { sql: "SELECT name FROM test.test_table WHERE id = ? ORDER BY id", params: [1], expected: [['name'], ['Alice']] },
           { sql: "SELECT id FROM test.test_table WHERE name = ? ORDER BY id", params: ["Bob"], expected: [['id'], ["2"]] },
           { sql: "SELECT * FROM test.test_table WHERE id > ? ORDER BY id", params: [2], expected: [%w[id name], %w[3 Charlie], %w[4 David]] }
         ]
-  
+
         results = []
         threads = []
-  
-        queries.each_with_index do |q, idx| 
+
+        queries.each_with_index do |q, idx|
           threads << Thread.new do
-            results[idx] = db.execute2(q[:sql], q[:params]) 
+            results[idx] = db.execute2(q[:sql], q[:params])
           end
         end
-  
+
         threads.each(&:join)
-  
+
         expect(results[0]).to eq(queries[0][:expected])
         expect(results[1]).to eq(queries[1][:expected])
         expect(results[2]).to eq(queries[2][:expected])
@@ -422,13 +422,13 @@ RSpec.describe ChDB::Database do
       create_test_table(db)
       result = db.query('SELECT * FROM test.test_table ORDER BY id')
       expect(result.to_a).to eq([%w[1 Alice], %w[2 Bob], %w[3 Charlie], %w[4 David]])
-      
+
       result = db.query('SELECT * FROM test.test_table WHERE id != ? AND name != ? ORDER BY id', [0, 'Jack'])
       expect(result.to_a).to eq([%w[1 Alice], %w[2 Bob], %w[3 Charlie], %w[4 David]])
 
       db.close
     end
-    
+
     it 'query empty table' do
       db = ChDB::Database.new(test_db_path)
       create_empty_table(db)
@@ -444,18 +444,98 @@ RSpec.describe ChDB::Database do
       create_test_table(db)
       result = db.query_with_format('SELECT * FROM test.test_table ORDER BY id')
       expect(result).to eq("1,\"Alice\"\n2,\"Bob\"\n3,\"Charlie\"\n4,\"David\"\n")
-      
+
       result = db.query_with_format('SELECT * FROM test.test_table WHERE id > ? ORDER BY id', 'CSV', [0])
       expect(result).to eq("1,\"Alice\"\n2,\"Bob\"\n3,\"Charlie\"\n4,\"David\"\n")
       db.close
     end
-    
+
     it 'query with format and empty table' do
       db = ChDB::Database.new(test_db_path)
       create_empty_table(db)
       result = db.query_with_format('SELECT * FROM test.test_table ORDER BY id')
       expect(result).to eq('')
       db.close
+    end
+  end
+
+  describe '#streaming query' do
+    it 'streaming query' do
+      ChDB::Database.open(test_db_path) do |db|
+        collected = []
+        total_rows = 0
+        db.execute('SELECT * FROM numbers(200000)') do |row|
+          total_rows += 1
+        end
+        expect(total_rows).to eq 200000
+
+        total_rows = 0
+        collected = []
+        db.send_query('SELECT * FROM numbers(200000)', 'JSON') do |chunk|
+          # p chunk.buf
+          collected << chunk
+          total_rows += chunk.rows_read
+        end
+
+        expect(collected.size).to be > 1
+        expect(total_rows).to eq 200000
+
+        total_rows = 0
+        collected = []
+        db.execute('SELECT * FROM numbers(200000)') do |row|
+          total_rows += 1
+        end
+        expect(total_rows).to eq 200000
+
+        total_rows = 0
+        collected = []
+        db.send_query('SELECT * FROM numbers(?)', 'JSON', 200000) do |chunk|
+          # p chunk.buf
+          collected << chunk
+          total_rows += chunk.rows_read
+        end
+
+        expect(collected.size).to be > 1
+        expect(total_rows).to eq 200000
+
+        total_rows = 0
+        collected = []
+        result = db.send_query('SELECT * FROM numbers(?)', 'JSON', 200000)
+        while (chunk = result.next)
+          collected << chunk
+          total_rows += chunk.rows_read
+        end
+
+        expect(collected.size).to be > 1
+        expect(total_rows).to eq 200000
+      end
+    end
+
+    it 'cancel streaming query' do
+      ChDB::Database.open(test_db_path) do |db|
+        collected = []
+        total_rows = 0
+        result = db.send_query('SELECT * FROM numbers(200000)')
+        expect(result.eof?).to be false
+
+        while (chunk = result.next)
+          collected << chunk
+          total_rows += chunk.rows_read
+          result.cancel
+        end
+
+        expect(collected.size).to eq(1)
+        expect(total_rows).to be > 1
+        expect(result.eof?).to be true
+      end
+    end
+
+    it 'streaming query with exception' do
+      ChDB::Database.open(test_db_path) do |db|
+        expect {
+          db.send_query('SELECT * FROM numbers(200000);SELECT * FROM numbers(200000)')
+        }.to raise_error(Exception)
+      end
     end
   end
 
@@ -475,7 +555,7 @@ RSpec.describe ChDB::Database do
       expect(result).to eq({ 'id' => '1', 'name' => 'Alice' })
       db.close
     end
-    
+
     it 'get first row with empty table' do
       db = ChDB::Database.new(test_db_path)
       create_empty_table(db)
@@ -509,7 +589,7 @@ RSpec.describe ChDB::Database do
       expect(result).to eq('1')
       db.close
     end
-    
+
     it 'get first value with empty table' do
       db = ChDB::Database.new(test_db_path)
       create_empty_table(db)
@@ -517,7 +597,7 @@ RSpec.describe ChDB::Database do
       expect(result).to eq(nil)
       db.close
     end
-    
+
     it 'get first value with empty table and hash' do
       db = ChDB::Database.new(test_db_path, results_as_hash: true)
       create_empty_table(db)
@@ -533,24 +613,24 @@ RSpec.describe ChDB::Database do
         stmt = db.prepare('SELECT ? AS value')
         result = stmt.execute(42)
         expect(result.to_a).to eq([['42']])
-        
+
         result = stmt.execute(55)
         expect(result.to_a).to eq([['55']])
-        
+
         create_test_table(db)
         stmt = db.prepare('SELECT * FROM test.test_table WHERE id != ? AND name != ? ORDER BY id')
         result = stmt.execute([0, 'Jack'])
         expect(result.to_a).to eq([%w[1 Alice], %w[2 Bob], %w[3 Charlie], %w[4 David]])
-        
+
         result = stmt.execute([2, 'Bob'])
         expect(result.to_a).to eq([%w[1 Alice], %w[3 Charlie], %w[4 David]])
-        
+
         result = stmt.execute([false, 'Alice'])
         expect(result.to_a).to eq([%w[2 Bob], %w[3 Charlie], %w[4 David]])
-        
+
         result = stmt.execute([true, 'Jack'])
         expect(result.to_a).to eq([%w[2 Bob], %w[3 Charlie], %w[4 David]])
-        
+
         result = stmt.execute([nil, 'xx'])
         expect(result.to_a).to eq([])
       end
