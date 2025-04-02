@@ -6,10 +6,11 @@
 #include "include/chdb.h"
 #include "local_result.h"
 
-static void connection_free(void *ptr)
+void connection_free(void *ptr)
 {
     Connection *conn = (Connection *)ptr;
-    DEBUG_PRINT("Closing connection: %p", (void*)conn->c_conn);
+    DEBUG_PRINT("Closing connection in connection_free: %p", (void*)conn->c_conn);
+
     if (conn->c_conn)
     {
         close_conn_ptr(conn->c_conn);
@@ -67,7 +68,6 @@ VALUE connection_initialize(VALUE self, VALUE argc, VALUE argv)
     }
 
     xfree(c_argv);
-    rb_gc_unregister_address(&argv);
     return self;
 }
 
@@ -93,6 +93,7 @@ VALUE connection_query(VALUE self, VALUE query, VALUE format)
     if (c_result->error_message)
     {
         VALUE error_message = rb_str_new_cstr(c_result->error_message);
+        free_result_v2_ptr(c_result);
         rb_raise(cChDBError, "CHDB error: %s", StringValueCStr(error_message));
     }
 
@@ -108,8 +109,9 @@ VALUE connection_close(VALUE self)
 {
     Connection *conn;
     TypedData_Get_Struct(self, Connection, &ConnectionType, conn);
+    DEBUG_PRINT("Closing connection in connection_close: %p", (void*)conn->c_conn);
 
-    if (conn->c_conn)
+    if (conn && conn->c_conn)
     {
         close_conn_ptr(conn->c_conn);
         conn->c_conn = NULL;

@@ -12,5 +12,6 @@ void init_exception()
     else
     {
         cChDBError = rb_define_class_under(mChDB, "Exception", rb_eStandardError);
+        rb_global_variable(&cChDBError);
     }
 }

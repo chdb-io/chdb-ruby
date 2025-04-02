@@ -45,6 +45,7 @@ Gem::Specification.new do |s|
     'ext/chdb/connection.c',
     'ext/chdb/connection.h',
     'ext/chdb/constants.h',
+    'ext/chdb/constants.c',
     'ext/chdb/exception.c',
     'ext/chdb/exception.h',
     'ext/chdb/extconf.rb',

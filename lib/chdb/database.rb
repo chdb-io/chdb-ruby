@@ -13,6 +13,8 @@ module ChDB
   # Represents a database connection and provides methods to interact with the database.
   class Database # rubocop:disable Metrics/ClassLength
     class << self
+      @@instance = nil # rubocop:disable Style/ClassVars
+
       # Without block works exactly as new.
       # With block, like new closes the database at the end, but unlike new
       # returns the result of the block instead of the database instance.
@@ -36,15 +38,19 @@ module ChDB
     attr_accessor :results_as_hash, :conn
 
     def initialize(file, options = {}) # rubocop:disable Metrics/MethodLength
+      raise InternalException, 'Existing database instance is not closed' if @@instance
+
       file = file.to_path if file.respond_to? :to_path
 
       @data_path = DataPath.new(file, options)
-      @results_as_hash = @data_path.query_params[:results_as_hash]
+      @results_as_hash = @data_path.query_params['results_as_hash'] || false
       @readonly = @data_path.mode & Constants::Open::READONLY != 0
 
       argv = @data_path.generate_arguments
       @conn = ChDB::Connection.new(argv.size, argv)
       @closed = false
+
+      @@instance = self # rubocop:disable Style/ClassVars
 
       return unless block_given?
 
@@ -61,6 +67,8 @@ module ChDB
       @data_path.close if @data_path.respond_to?(:close)
       @conn.close if @conn.respond_to?(:close)
       @closed = true
+
+      @@instance = nil # rubocop:disable Style/ClassVars
     end
 
     def closed?
@@ -111,7 +119,7 @@ module ChDB
       end
     end
 
-    def query_with_format(sql, bind_vars = [], format = 'CSV')
+    def query_with_format(sql, format = 'CSV', bind_vars = [])
       result = prepare(sql).execute_with_format(bind_vars, format)
       if block_given?
         yield result

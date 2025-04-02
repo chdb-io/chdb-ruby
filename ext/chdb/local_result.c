@@ -2,16 +2,18 @@
 
 #include "constants.h"
 #include "include/chdb.h"
+#include "chdb_handle.h"
 
 VALUE cLocalResult;
 
-static void local_result_free(void *ptr)
+void local_result_free(void *ptr)
 {
     LocalResult *result = (LocalResult *)ptr;
     DEBUG_PRINT("Freeing LocalResult: %p", (void*)result);
     if (result->c_result)
     {
-        free_result_v2(result->c_result);
+        DEBUG_PRINT("Freeing local_result_v2: %p", (void*)result->c_result);
+        free_result_v2_ptr(result->c_result);
     }
     free(result);
 }

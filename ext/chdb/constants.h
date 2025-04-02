@@ -12,4 +12,6 @@
 #define DEBUG_PRINT(fmt, ...) ((void)0)
 #endif
 
+void init_chdb_constants();
+
 #endif

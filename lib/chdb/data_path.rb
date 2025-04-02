@@ -23,7 +23,7 @@ module ChDB
 
     def generate_arguments # rubocop:disable Metrics/MethodLength
       args = ['clickhouse', "--path=#{@dir_path}"]
-      excluded_keys = %i[results_as_hash readonly readwrite flags]
+      excluded_keys = %w[results_as_hash readonly readwrite flags]
 
       @query_params.each do |key, value|
         next if excluded_keys.include?(key)
@@ -72,8 +72,7 @@ module ChDB
     end
 
     def merge_options(options)
-      @query_params = @query_params.merge(options)
-      # @query_params = @query_params.merge(options.transform_keys(&:to_s))
+      @query_params = @query_params.merge(options.transform_keys(&:to_s))
     end
 
     def directory_path(path)
@@ -87,31 +86,29 @@ module ChDB
     end
 
     def ensure_directory_exists
-      if @mode.nobits?(Constants::Open::CREATE)
-        raise DirectoryNotFoundException, "Directory #{@dir_path} required" unless Dir.exist?(@dir_path)
+      return if Dir.exist?(@dir_path)
 
-        return
-      end
+      raise DirectoryNotFoundException, "Directory #{@dir_path} required" if @mode.nobits?(Constants::Open::CREATE)
 
       FileUtils.mkdir_p(@dir_path, mode: 0o755)
     end
 
     def check_params # rubocop:disable Metrics/MethodLength
       @mode = Constants::Open::READWRITE | Constants::Open::CREATE
-      @mode = Constants::Open::READONLY if @query_params[:readonly]
+      @mode = Constants::Open::READONLY if @query_params['readonly']
 
-      if @query_params[:readwrite]
-        raise InvalidArgumentException, 'conflicting options: readonly and readwrite' if @query_params[:readonly]
+      if @query_params['readwrite']
+        raise InvalidArgumentException, 'conflicting options: readonly and readwrite' if @query_params['readonly']
 
         @mode = Constants::Open::READWRITE
       end
 
-      return unless @query_params[:flags]
-      if @query_params[:readonly] || @query_params[:readwrite]
+      return unless @query_params['flags']
+      if @query_params['readonly'] || @query_params['readwrite']
         raise InvalidArgumentException, 'conflicting options: flags with readonly and/or readwrite'
       end
 
-      @mode = @query_params[:flags]
+      @mode = @query_params['flags']
     end
 
     def remove_file_prefix(str)
