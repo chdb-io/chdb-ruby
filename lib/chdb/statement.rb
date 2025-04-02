@@ -107,8 +107,8 @@ module ChDB
     private
 
     def validate_inputs(db, sql_str)
-      raise ArgumentError, 'SQL statement cannot be nil' if sql_str.nil?
-      raise ArgumentError, 'prepare called on a closed database' if db.nil? || db.closed?
+      raise InvalidArgumentException, 'SQL statement cannot be nil' if sql_str.nil?
+      raise InvalidArgumentException, 'prepare called on a closed database' if db.nil? || db.closed?
     end
 
     def encode_sql(sql_str)

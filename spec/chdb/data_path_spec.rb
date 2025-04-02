@@ -15,10 +15,11 @@ RSpec.describe ChDB::DataPath do
   describe '#initialize' do
     it 'parses URI with memory path' do
       path = described_class.new('file::memory:?key1=value1', {})
+      # puts path.dir_path
       expect(path.dir_path).to match(/chdb_/)
       expect(path.is_tmp).to be true
       expect(path.query_params.transform_keys(&:to_s)).to include('key1' => 'value1')
-      FileUtils.remove_entry(path.dir_path)
+      path.close()
     end
 
     it 'parses URI with file path' do
@@ -28,7 +29,8 @@ RSpec.describe ChDB::DataPath do
     end
 
     it 'parses URI with query parameters' do
-      path = described_class.new('testdb?key1=value1&readonly=1', {})
+      path = described_class.new("file:#{test_db_path}?key1=value1", {})
+      path = described_class.new("#{test_db_path}?key1=value1&readonly=1", {})
       expect(path.query_params).to include('key1' => 'value1', 'readonly' => '1')
     end
 
@@ -49,6 +51,7 @@ RSpec.describe ChDB::DataPath do
       args = path.generate_arguments
       expect(args).not_to include(a_string_matching(/results_as_hash/))
       expect(args).not_to include(a_string_matching(/flags/))
+      path.close()
     end
 
     it 'generates UDF arguments' do
@@ -70,7 +73,7 @@ RSpec.describe ChDB::DataPath do
       path = described_class.new(':memory:', {})
       expect(path.dir_path).to match(/chdb_/)
       expect(path.is_tmp).to be true
-      FileUtils.remove_entry(path.dir_path)
+      path.close()
     end
 
     it 'uses existing directory' do
@@ -94,6 +97,7 @@ RSpec.describe ChDB::DataPath do
 
   describe 'mode flags' do
     it 'sets readonly mode' do
+      path = described_class.new("file:test?key1=value1", {})
       path = described_class.new('test', { readonly: true })
       expect(path.mode & ChDB::Constants::Open::READONLY).not_to be_zero
     end
