@@ -1,9 +1,9 @@
 <a href="https://chdb.io" target="_blank">
-  <img src="https://avatars.githubusercontent.com/u/132536224" width=130 />
+  <img src="img/chdb-ruby.png" width=130 />
 </a>
 
 
-# Ruby Interface for chdb
+# Ruby binding for chDB
 
 ## Overview
 
