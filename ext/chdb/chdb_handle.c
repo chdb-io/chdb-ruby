@@ -68,8 +68,8 @@ void init_chdb_handle()
     chdb_destroy_result_ptr = (chdb_destroy_result_func)dlsym(chdb_handle, "chdb_destroy_result");
 
     if (!connect_chdb_ptr || !close_conn_ptr || !query_conn_ptr || !free_result_v2_ptr ||
-        !query_conn_streaming_ptr || !chdb_streaming_result_error_ptr || !chdb_streaming_fetch_result_ptr ||
-        !chdb_streaming_cancel_query_ptr || !chdb_destroy_result_ptr)
+            !query_conn_streaming_ptr || !chdb_streaming_result_error_ptr || !chdb_streaming_fetch_result_ptr ||
+            !chdb_streaming_cancel_query_ptr || !chdb_destroy_result_ptr)
     {
         close_chdb_handle();
 

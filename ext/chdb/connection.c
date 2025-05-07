@@ -118,10 +118,10 @@ VALUE connection_streaming_query(VALUE self, VALUE query, VALUE format)
     Check_Type(format, T_STRING);
 
     chdb_streaming_result *c_result = query_conn_streaming_ptr(
-                                           *conn->c_conn,
-                                           StringValueCStr(query),
-                                           StringValueCStr(format)
-                                       );
+                                          *conn->c_conn,
+                                          StringValueCStr(query),
+                                          StringValueCStr(format)
+                                      );
 
     if (!c_result)
     {

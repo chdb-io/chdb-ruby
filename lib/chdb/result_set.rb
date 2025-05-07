@@ -73,7 +73,7 @@ module ChDB
 
       result = @db.conn.fetch_streaming_result(@streaming_result)
 
-      if result.nil? || result.rows_read == 0
+      if result.nil? || result.rows_read.zero?
         @done = true
         nil
       else
