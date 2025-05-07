@@ -120,7 +120,7 @@ ChDB::Database.open(':memory:') do |db|
   total_rows = 0
   collected = []
   db.send_query('SELECT * FROM numbers(200000)') do |chunk|
-    collected << chunk
+    collected << chunk.buf
     total_rows += chunk.rows_read
   end
   p total_rows # => 200000
