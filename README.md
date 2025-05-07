@@ -114,6 +114,17 @@ ChDB::Database.open(':memory:') do |db|
   json_data = db.query_with_format('SELECT 1 as a, 2 as b', 'JSON')
   p json_data
 end
+
+# Execute streaming query
+ChDB::Database.open(':memory:') do |db|
+  total_rows = 0
+  collected = []
+  db.send_query('SELECT * FROM numbers(200000)') do |chunk|
+    collected << chunk
+    total_rows += chunk.rows_read
+  end
+  p total_rows # => 200000
+end
 ```
 
 ## Thread Safety
