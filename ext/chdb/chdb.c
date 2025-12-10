@@ -6,6 +6,7 @@
 #include "connection.h"
 #include "exception.h"
 #include "local_result.h"
+#include "streaming_result.h"
 
 void Init_chdb_native()
 {
@@ -15,6 +16,7 @@ void Init_chdb_native()
     init_chdb_handle();
     init_chdb_constants();
     init_local_result();
+    init_streaming_result();
     init_connection();
 
     DEBUG_PRINT("chdb extension initialized successfully");

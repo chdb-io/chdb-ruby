@@ -8,6 +8,7 @@ rescue LoadError
   require 'chdb/chdb_native'
 end
 require 'chdb/local_result'
+require 'chdb/streaming_result'
 require 'chdb/result_set'
 require 'chdb/result_handler'
 require 'chdb/parameter_binding'
@@ -71,6 +72,21 @@ module ChDB
       @result.buf
     end
 
+    def send_query(*bind_vars, format)
+      reset! if @executed
+
+      bind_params(*bind_vars) unless bind_vars.empty?
+
+      my_processed_sql = process_sql
+      streaming_result = @connection.conn.send_query(my_processed_sql, format)
+      streaming_result.output_format = format
+
+      results = StreamingResultSet.new(@connection, streaming_result)
+
+      yield results if block_given?
+      results
+    end
+
     def reset!
       @executed = false
       @parsed = false
@@ -78,7 +94,7 @@ module ChDB
       @bind_vars.clear
       @parsed_data.clear
       @columns.clear
-      @results = nil
+      @result = nil
     end
 
     def step
@@ -101,7 +117,7 @@ module ChDB
       end
 
       @parsed = true
-      @results = nil
+      @result = nil
     end
 
     private

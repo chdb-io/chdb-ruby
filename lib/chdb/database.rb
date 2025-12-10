@@ -94,14 +94,14 @@ module ChDB
       end
     end
 
-    def execute2(sql, *bind_vars, &) # rubocop:disable Metrics/MethodLength
+    def execute2(sql, *bind_vars, &block) # rubocop:disable Metrics/MethodLength
       prepare(sql) do |stmt|
         result = stmt.execute(*bind_vars)
         stmt.parse
 
-        if block_given?
+        if block
           yield stmt.columns
-          result.each(&)
+          result.each(&block)
         else
           return result.each_with_object([stmt.columns]) do |row, arr|
                    arr << row
@@ -125,6 +125,18 @@ module ChDB
         yield result
       else
         result
+      end
+    end
+
+    def send_query(sql, format = 'CSV', bind_vars = [], &block)
+      prepare(sql) do |stmt|
+        result = stmt.send_query(bind_vars, format)
+
+        if block
+          result.each(&block)
+        else
+          result
+        end
       end
     end
 

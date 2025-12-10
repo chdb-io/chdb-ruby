@@ -51,6 +51,8 @@ Gem::Specification.new do |s|
     'ext/chdb/extconf.rb',
     'ext/chdb/local_result.c',
     'ext/chdb/local_result.h',
+    'ext/chdb/streaming_result.c',
+    'ext/chdb/streaming_result.h',
     'lib/chdb.rb',
     'lib/chdb/constants.rb',
     'lib/chdb/data_path.rb',
@@ -62,6 +64,7 @@ Gem::Specification.new do |s|
     'lib/chdb/result_set.rb',
     'lib/chdb/sql_processor.rb',
     'lib/chdb/statement.rb',
+    'lib/chdb/streaming_result.rb',
     'lib/chdb/version_info.rb',
     'lib/chdb/version.rb'
   ]

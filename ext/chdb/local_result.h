@@ -3,6 +3,8 @@
 
 #include <ruby.h>
 
+#include "include/chdb.h"
+
 typedef struct
 {
     struct local_result_v2 *c_result;
