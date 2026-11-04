@@ -5,9 +5,11 @@ VALUE cChDBError;
 void init_exception()
 {
     VALUE mChDB = rb_define_module("ChDB");
-    if (rb_const_defined(mChDB, rb_intern("Exception")))
+    // Look up ChDB::Exception only in ChDB itself: rb_const_defined/rb_const_get
+    // also search Object for a module and would return Ruby's top-level Exception.
+    if (rb_const_defined_at(mChDB, rb_intern("Exception")))
     {
-        cChDBError = rb_const_get(mChDB, rb_intern("Exception"));
+        cChDBError = rb_const_get_at(mChDB, rb_intern("Exception"));
     }
     else
     {
