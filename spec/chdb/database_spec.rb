@@ -459,6 +459,42 @@ RSpec.describe ChDB::Database do
     end
   end
 
+  describe 'query errors' do
+    it 'raises ChDB::Exception, a StandardError' do
+      expect(ChDB::Exception.superclass).to eq(StandardError)
+
+      ChDB::Database.open(test_db_path) do |db|
+        expect { db.execute('SELEC 1') }.to raise_error(ChDB::Exception, /Syntax error/)
+        expect { db.query_with_format('SELECT 1', 'NoSuchFormat') }.to raise_error(ChDB::Exception, /UNKNOWN_FORMAT/)
+        expect { db.send_query('SELECT 1;SELECT 2') }.to raise_error(ChDB::Exception, /SYNTAX_ERROR/)
+        result = db.send_query('SELECT * FROM no_such_table_xyz')
+        expect { result.next }.to raise_error(ChDB::Exception, /no_such_table_xyz/)
+      end
+    end
+
+    it 'is caught by a bare rescue and by rescue StandardError' do
+      ChDB::Database.open(test_db_path) do |db|
+        caught = begin
+          db.execute('SELEC 1')
+          nil
+        rescue => e
+          e
+        end
+        expect(caught).to be_a(ChDB::Exception)
+
+        caught = begin
+          db.query_with_format('SELECT 1', 'NoSuchFormat')
+          nil
+        rescue StandardError => e
+          e
+        end
+        expect(caught).to be_a(ChDB::Exception)
+
+        expect(db.execute('SELECT 1')).to eq([['1']])
+      end
+    end
+  end
+
   describe '#streaming query' do
     it 'streaming query' do
       ChDB::Database.open(test_db_path) do |db|

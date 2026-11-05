@@ -87,5 +87,8 @@ void init_chdb_handle()
                  (void*)chdb_destroy_result_ptr);
     }
 
-    rb_set_end_proc(close_chdb_handle, 0);
+    // Keep libchdb loaded until the process exits. Ruby runs end procs before the
+    // GC finalizers of the remaining Connection/LocalResult/StreamingResult objects,
+    // and those finalizers call back into libchdb, so unloading it here would leave
+    // them jumping into unmapped code.
 }

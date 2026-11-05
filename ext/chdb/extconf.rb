@@ -128,7 +128,7 @@ module ChDB
       end
 
       def build_download_url(version, file_name)
-        "https://github.com/chdb-io/chdb/releases/download/v#{version}/#{file_name}"
+        "https://github.com/chdb-io/chdb-core/releases/download/v#{version}/#{file_name}"
       end
 
       def download_tarball(url, download_dir, file_name)
